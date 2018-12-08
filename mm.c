@@ -121,6 +121,7 @@ static inline void* PREV_BLKP(void *bp){
 // Global Variables
 //
 static char *heap_listp;  /* pointer to first block */
+static void* endh;
 
 //
 // function prototypes for internal helper routines
@@ -183,18 +184,26 @@ static void *extend_heap(uint32_t words)
 // Practice problem 9.8
 //
 // find_fit - Find a fit for a block with asize bytes 
+//THIS IS THE MOST IMPORTANT PART OF THE LAB
 //==============================================================================================
 static void *find_fit(uint32_t asize)
 {
-  void *bp;
+    void *bp;
     
-    /* first fit search */
-    for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
-        if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))) {
+    //FIRST FIT SEARCH
+    void *smallest = NULL;
+    //      STARTING         CHECKS TO SEE            INCREMENTS
+    //     AT THE HEAD       IF NOT EMPTY         TO THE NEXT BLOCK 
+    if(endh == NULL){
+      endh = heap_listp;
+    }
+    for(bp = endh; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)){
+        if(!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
+            endh = bp;
             return bp;
         }
     }
-    return NULL; /* no fit */
+    return smallest; /* no fit */
 }
 
 //==============================================================================================
@@ -254,6 +263,8 @@ static void *coalesce(void *bp)
     PUT(FTRP(NEXT_BLKP(bp)), PACK(size, 0));
     bp = PREV_BLKP(bp);
   }
+
+  endh = bp;
   return bp;
 }
 
@@ -317,10 +328,13 @@ static void place(void *bp, uint32_t asize)
 
 //
 // mm_realloc -- implemented for you
+//POINTER TO ALLOCATED SPACE
 //
 void *mm_realloc(void *ptr, uint32_t size)
 {
   void *newp;
+  uint32_t currentsize = GET_SIZE(HDRP(ptr));
+  uint32_t nextsize = GET_SIZE(HDRP(NEXT_BLKP(ptr)));
   uint32_t copySize;
 
   //THIS IS ACTUALLY A FREE IN THIS CASE
@@ -332,6 +346,25 @@ void *mm_realloc(void *ptr, uint32_t size)
   //IF OLD POINTER IS NULL THEN JUST MALLOC IT
   if(ptr == NULL){
     return mm_malloc(size);
+  }
+
+  //THIS IS A MORE EFFICIENT REALLOCATION FUNCTION FOR CONTRACTING MEMORY
+  if(size < currentsize){
+    place(ptr, size);
+    return ptr;
+  }
+
+  //THIS IS A MORE EFFICIENT REALLOCATION FOR EXPANDING MEMORY
+  if(currentsize + nextsize >= size && !GET_ALLOC(HDRP(NEXT_BLKP(ptr)))){
+    PUT(HDRP(ptr), PACK(size, 1));
+    //THE HEADER AND FOOTER DONT MATCH
+    PUT(FTRP(ptr), PACK(size, 1));
+    int extra = currentsize + nextsize - size;
+    if(extra > (4 * WSIZE)){
+      PUT(HDRP(NEXT_BLKP(ptr)), PACK(extra, 0));
+      PUT(FTRP(NEXT_BLKP(ptr)), PACK(extra, 0));
+    }
+    return ptr;
   }
 
 
@@ -351,6 +384,10 @@ void *mm_realloc(void *ptr, uint32_t size)
   //FREE OLD MEMORY
   mm_free(ptr);
   return newp;
+
+
+
+
 }
 
 //

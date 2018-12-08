@@ -5,12 +5,12 @@ TEAM = xyzzy
 VERSION = 1
 
 CC = cc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -O3
 
 OBJS = mdriver.o mm.o memlib.o fsecs.o fcyc.o clock.o ftimer.o
 
 mdriver: $(OBJS)
-	$(CC) $(CFLAGS) -O3 -o mdriver $(OBJS)
+	$(CC) $(CFLAGS) -o mdriver $(OBJS)
 
 mdriver.o: mdriver.c fsecs.h fcyc.h clock.h memlib.h config.h mm.h
 memlib.o: memlib.c memlib.h
