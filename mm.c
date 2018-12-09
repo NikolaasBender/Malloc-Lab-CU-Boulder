@@ -1,27 +1,9 @@
 /* 
- * mm-implicit.c -  Simple allocator based on implicit free lists, 
- *                  first fit placement, and boundary tag coalescing. 
- *
- * Each block has header and footer of the form:
- * 
- *      31                     3  2  1  0 
- *      -----------------------------------
- *     | s  s  s  s  ... s  s  s  0  0  a/f
- *      ----------------------------------- 
- * 
- * where s are the meaningful size bits and a/f is set 
- * iff the block is allocated. The list has the following form:
- *
- * begin                                                          end
- * heap                                                           heap  
- *  -----------------------------------------------------------------   
- * |  pad   | hdr(8:a) | ftr(8:a) | zero or more usr blks | hdr(8:a) |
- *  -----------------------------------------------------------------
- *          |       prologue      |                       | epilogue |
- *          |         block       |                       | block    |
- *
- * The allocated prologue and epilogue blocks are overhead that
- * eliminate edge conditions during coalescing.
+THER IS CODE HERE LEVERAGED FROM FRIENDS IN THE CLASS, DIRK THE PROFESSOR, AND OTHER STUDENTS ONLINE 
+SUCH AS THIS VERY HELPFUL PERSON
+https://github.com/coghex/malloc/blob/master/mm.c?fbclid=IwAR1TKWfRLudmkM6dBbD3tDN-E_Ah_-kGsZFnY9ROqZ6J9ZD0nah3Pv0rwpQ
+
+THIS IS A TOOL TO HELP YOU LEARN, NOT SO YOU CAN JUST PASS
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -203,6 +185,8 @@ static void *find_fit(uint32_t asize)
             return bp;
         }
     }
+
+
     return smallest; /* no fit */
 }
 
