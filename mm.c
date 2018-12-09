@@ -332,61 +332,42 @@ static void place(void *bp, uint32_t asize)
 //
 void *mm_realloc(void *ptr, uint32_t size)
 {
+  // coalesce(heap_listp);
+  // uint32_t currentsize = GET_SIZE(HDRP(ptr));
+  // uint32_t nextsize = GET_SIZE(HDRP(NEXT_BLKP(ptr)));
+  
+  // //THIS IS A MORE EFFICIENT REALLOCATION FUNCTION FOR CONTRACTING MEMORY
+  // if(size < currentsize){
+  //   place(ptr, size);
+  //   return ptr;
+  // }
+
+  // //THIS IS A MORE EFFICIENT REALLOCATION FOR EXPANDING MEMORY
+  // if(currentsize + nextsize >= size && !GET_ALLOC(HDRP(NEXT_BLKP(ptr)))){
+  //   place(ptr, size);
+  //   int extra = currentsize + nextsize - size;
+  //   if(extra > (4 * WSIZE)){
+  //     mm_free(NEXT_BLKP(HDRP(ptr)));
+  //   }
+  //   return ptr;
+  // }
+
+ 
   void *newp;
-  uint32_t currentsize = GET_SIZE(HDRP(ptr));
-  uint32_t nextsize = GET_SIZE(HDRP(NEXT_BLKP(ptr)));
-  uint32_t copySize;
-
-  //THIS IS ACTUALLY A FREE IN THIS CASE
-  if(size == 0) {
-      mm_free(ptr);
-      return 0;
-  }
-
-  //IF OLD POINTER IS NULL THEN JUST MALLOC IT
-  if(ptr == NULL){
-    return mm_malloc(size);
-  }
-
-  //THIS IS A MORE EFFICIENT REALLOCATION FUNCTION FOR CONTRACTING MEMORY
-  if(size < currentsize){
-    place(ptr, size);
-    return ptr;
-  }
-
-  //THIS IS A MORE EFFICIENT REALLOCATION FOR EXPANDING MEMORY
-  if(currentsize + nextsize >= size && !GET_ALLOC(HDRP(NEXT_BLKP(ptr)))){
-    PUT(HDRP(ptr), PACK(size, 1));
-    //THE HEADER AND FOOTER DONT MATCH
-    PUT(FTRP(ptr), PACK(size, 1));
-    int extra = currentsize + nextsize - size;
-    if(extra > (4 * WSIZE)){
-      PUT(HDRP(NEXT_BLKP(ptr)), PACK(extra, 0));
-      PUT(FTRP(NEXT_BLKP(ptr)), PACK(extra, 0));
-    }
-    return ptr;
-  }
-
+  size_t copySize;
 
   newp = mm_malloc(size);
-  //IF REALLOC FAILS THE ORIGINAL BLOCK IS LEFT
   if (newp == NULL) {
     printf("ERROR: mm_malloc failed in mm_realloc\n");
     exit(1);
   }
-
-  //COPY OLD DATA
   copySize = GET_SIZE(HDRP(ptr));
   if (size < copySize) {
     copySize = size;
   }
   memcpy(newp, ptr, copySize);
-  //FREE OLD MEMORY
   mm_free(ptr);
   return newp;
-
-
-
 
 }
 
